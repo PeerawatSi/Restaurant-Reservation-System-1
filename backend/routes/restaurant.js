@@ -9,7 +9,8 @@ import {
   createTimeSlot,
   getRestaurantTimeSlots,
   getAllRestaurants,
-  getRestaurantById
+  getRestaurantById,
+  deleteRestaurant
 } from '../controllers/restaurantController.js';
 
 const router = express.Router();
@@ -26,5 +27,6 @@ router.get('/my/restaurants', authenticateToken, checkRole('owner', 'admin'), ge
 router.put('/:restaurantId', authenticateToken, checkRole('owner', 'admin'), updateRestaurant);
 router.post('/:restaurantId/tables', authenticateToken, checkRole('owner', 'admin'), createTable);
 router.post('/:restaurantId/time-slots', authenticateToken, checkRole('owner', 'admin'), createTimeSlot);
+router.delete('/:restaurantId', authenticateToken, checkRole('owner', 'admin'), deleteRestaurant);
 
 export default router;

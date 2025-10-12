@@ -63,6 +63,25 @@ export const updateRestaurant = async (req, res) => {
   }
 };
 
+export const deleteRestaurant = async (req, res) => {
+  try {
+    const { restaurantId } = req.params;
+
+    const result = await pool.query(
+      'DELETE FROM restaurants WHERE id = $1 AND owner_id = $2 RETURNING *',
+      [restaurantId, req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Restaurant not found or unauthorized' });
+    }
+
+    res.json({ message: 'Restaurant deleted successfully', restaurant: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 export const createTable = async (req, res) => {
   try {
     const { restaurantId } = req.params;
@@ -154,6 +173,7 @@ export const getAllRestaurants = async (req, res) => {
     );
     res.json(result.rows);
   } catch (error) {
+    console.error('Error in getAllRestaurants:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
