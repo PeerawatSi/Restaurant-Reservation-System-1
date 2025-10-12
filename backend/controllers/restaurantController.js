@@ -82,6 +82,128 @@ export const deleteRestaurant = async (req, res) => {
   }
 };
 
+export const updateTable = async (req, res) => {
+  try {
+    const { restaurantId, tableId } = req.params;
+    const { table_number, capacity, is_available } = req.body;
+
+    // Verify ownership
+    const ownerCheck = await pool.query(
+      'SELECT id FROM restaurants WHERE id = $1 AND owner_id = $2',
+      [restaurantId, req.user.id]
+    );
+
+    if (ownerCheck.rows.length === 0) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const result = await pool.query(
+      `UPDATE restaurant_tables 
+       SET table_number = $1, capacity = $2, is_available = $3 
+       WHERE id = $4 AND restaurant_id = $5 RETURNING *`,
+      [table_number, capacity, is_available, tableId, restaurantId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Table not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+export const deleteTable = async (req, res) => {
+  try {
+    const { restaurantId, tableId } = req.params;
+
+    // Verify ownership
+    const ownerCheck = await pool.query(
+      'SELECT id FROM restaurants WHERE id = $1 AND owner_id = $2',
+      [restaurantId, req.user.id]
+    );
+
+    if (ownerCheck.rows.length === 0) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const result = await pool.query(
+      'DELETE FROM restaurant_tables WHERE id = $1 AND restaurant_id = $2 RETURNING *',
+      [tableId, restaurantId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Table not found' });
+    }
+
+    res.json({ message: 'Table deleted successfully', table: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+export const updateTimeSlot = async (req, res) => {
+  try {
+    const { restaurantId, slotId } = req.params;
+    const { slot_time, duration_minutes, max_tables, is_active } = req.body;
+
+    // Verify ownership
+    const ownerCheck = await pool.query(
+      'SELECT id FROM restaurants WHERE id = $1 AND owner_id = $2',
+      [restaurantId, req.user.id]
+    );
+
+    if (ownerCheck.rows.length === 0) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const result = await pool.query(
+      `UPDATE time_slots 
+       SET slot_time = $1, duration_minutes = $2, max_tables = $3, is_active = $4 
+       WHERE id = $5 AND restaurant_id = $6 RETURNING *`,
+      [slot_time, duration_minutes, max_tables, is_active, slotId, restaurantId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Time slot not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+export const deleteTimeSlot = async (req, res) => {
+  try {
+    const { restaurantId, slotId } = req.params;
+
+    // Verify ownership
+    const ownerCheck = await pool.query(
+      'SELECT id FROM restaurants WHERE id = $1 AND owner_id = $2',
+      [restaurantId, req.user.id]
+    );
+
+    if (ownerCheck.rows.length === 0) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    const result = await pool.query(
+      'DELETE FROM time_slots WHERE id = $1 AND restaurant_id = $2 RETURNING *',
+      [slotId, restaurantId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Time slot not found' });
+    }
+
+    res.json({ message: 'Time slot deleted successfully', timeSlot: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 export const createTable = async (req, res) => {
   try {
     const { restaurantId } = req.params;
@@ -173,7 +295,6 @@ export const getAllRestaurants = async (req, res) => {
     );
     res.json(result.rows);
   } catch (error) {
-    console.error('Error in getAllRestaurants:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };

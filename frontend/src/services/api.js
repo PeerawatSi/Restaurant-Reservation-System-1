@@ -41,6 +41,10 @@ export const deleteRestaurant = (id) => api.delete(`/restaurants/${id}`);
 // Tables
 export const getRestaurantTables = (restaurantId) => api.get(`/restaurants/${restaurantId}/tables`);
 export const createTable = (restaurantId, data) => api.post(`/restaurants/${restaurantId}/tables`, data);
+export const updateTable = (restaurantId, tableId, data) => api.put(`/restaurants/${restaurantId}/tables/${tableId}`, data);
+export const deleteTable = (restaurantId, tableId) => api.delete(`/restaurants/${restaurantId}/tables/${tableId}`);
+export const updateTimeSlot = (restaurantId, slotId, data) => api.put(`/restaurants/${restaurantId}/time-slots/${slotId}`, data);
+export const deleteTimeSlot = (restaurantId, slotId) => api.delete(`/restaurants/${restaurantId}/time-slots/${slotId}`);
 
 // Time Slots
 export const getRestaurantTimeSlots = (restaurantId) => api.get(`/restaurants/${restaurantId}/time-slots`);

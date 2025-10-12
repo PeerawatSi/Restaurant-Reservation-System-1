@@ -10,7 +10,11 @@ import {
   getRestaurantTimeSlots,
   getAllRestaurants,
   getRestaurantById,
-  deleteRestaurant
+  deleteRestaurant,
+  updateTable,
+  deleteTable,
+  updateTimeSlot,
+  deleteTimeSlot
 } from '../controllers/restaurantController.js';
 
 const router = express.Router();
@@ -28,5 +32,9 @@ router.put('/:restaurantId', authenticateToken, checkRole('owner', 'admin'), upd
 router.post('/:restaurantId/tables', authenticateToken, checkRole('owner', 'admin'), createTable);
 router.post('/:restaurantId/time-slots', authenticateToken, checkRole('owner', 'admin'), createTimeSlot);
 router.delete('/:restaurantId', authenticateToken, checkRole('owner', 'admin'), deleteRestaurant);
+router.put('/:restaurantId/tables/:tableId', authenticateToken, checkRole('owner', 'admin'), updateTable);
+router.delete('/:restaurantId/tables/:tableId', authenticateToken, checkRole('owner', 'admin'), deleteTable);
+router.put('/:restaurantId/time-slots/:slotId', authenticateToken, checkRole('owner', 'admin'), updateTimeSlot);
+router.delete('/:restaurantId/time-slots/:slotId', authenticateToken, checkRole('owner', 'admin'), deleteTimeSlot);
 
 export default router;
