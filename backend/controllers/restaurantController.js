@@ -2,6 +2,16 @@ import pool from '../config/database.js';
 
 export const createRestaurant = async (req, res) => {
   try {
+    // Check if user already has a restaurant (limit 1 per email)
+    const existingRestaurant = await pool.query(
+      'SELECT id FROM restaurants WHERE owner_id = $1',
+      [req.user.id]
+    );
+
+    if (existingRestaurant.rows.length > 0) {
+      return res.status(400).json({ error: 'You can only create one restaurant per account' });
+    }
+
     const { name, description, address, phone, cuisine_type, opening_time, closing_time, image_url } = req.body;
     
     const result = await pool.query(

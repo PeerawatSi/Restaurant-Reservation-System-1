@@ -17,8 +17,8 @@ app.use(cors({
   origin: process.env.CLIENT_URL,
   credentials: true
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '500mb' })); // Increased limit for base64 images
+app.use(express.urlencoded({ extended: true, limit: '500mb' }));
 
 app.use(session({
   secret: process.env.SESSION_SECRET,
