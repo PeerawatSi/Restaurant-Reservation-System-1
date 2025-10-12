@@ -30,8 +30,8 @@ const Login = () => {
         
         <div style={styles.features}>
           <div style={styles.feature}>
-            <span style={styles.featureIcon}>⚡</span>
-            <span style={styles.featureText}>Instant Booking</span>
+            <span style={styles.featureIcon}>🥗</span>
+            <span style={styles.featureText}>Convenience</span>
           </div>
           <div style={styles.feature}>
             <span style={styles.featureIcon}>🔒</span>
@@ -53,7 +53,7 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    background: 'linear-gradient(135deg, #667eea 0%, #501e81ff 100%)',
     position: 'relative',
     overflow: 'hidden',
     padding: '2rem'

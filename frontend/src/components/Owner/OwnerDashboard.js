@@ -21,7 +21,7 @@ const OwnerDashboard = () => {
     image_url: '',
     is_active: true
   });
-
+// asdadsa
   useEffect(() => {
     loadRestaurants();
   }, []);
@@ -136,184 +136,195 @@ const OwnerDashboard = () => {
 
   return (
     <div style={styles.container}>
-      <div style={styles.header}>
-        <h1>My Restaurants</h1>
+      <div style={styles.background}>
+        <div style={styles.header}>
+          <h1>My Restaurants</h1>
+          {restaurants.length === 0 && !showForm && (
+            <button onClick={() => setShowForm(true)} style={styles.addBtn}>
+              + Add Restaurant
+            </button>
+          )}
+        </div>
+
+        {restaurants.length > 0 && !editMode && (
+          <div style={styles.limitInfo}>
+            <p>⚠️ You have reached the limit of 1 restaurant per account.</p>
+          </div>
+        )}
+
+        {showForm && (
+          <form onSubmit={handleSubmit} style={styles.form}>
+            <div style={styles.formHeader}>
+              <h3>{editMode ? 'Edit Restaurant' : 'Create New Restaurant'}</h3>
+              <button type="button" onClick={resetForm} style={styles.cancelBtn}>✕</button>
+            </div>
+            
+            <div style={styles.imageUploadSection}>
+              <label style={styles.imageLabel}>
+                <div style={styles.imageUploadBox}>
+                  {imagePreview ? (
+                    <img src={imagePreview} alt="Preview" style={styles.imagePreview} />
+                  ) : (
+                    <div style={styles.uploadPlaceholder}>
+                      <span style={styles.uploadIcon}>📸</span>
+                      <p>Click to upload restaurant image</p>
+                      <p style={styles.uploadHint}>JPG, PNG (Max 5MB)</p>
+                    </div>
+                  )}
+                </div>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleImageChange}
+                  style={{display: 'none'}}
+                />
+              </label>
+              {imagePreview && (
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setImagePreview('');
+                    setFormData({...formData, image_url: ''});
+                  }}
+                  style={styles.removeImageBtn}
+                >
+                  Remove Image
+                </button>
+              )}
+            </div>
+
+            <div style={styles.formGrid}>
+              <input 
+                type="text" 
+                placeholder="Restaurant Name *" 
+                required 
+                value={formData.name} 
+                onChange={(e) => setFormData({...formData, name: e.target.value})} 
+                style={styles.input} 
+              />
+              <input 
+                type="text" 
+                placeholder="Cuisine Type *" 
+                required
+                value={formData.cuisine_type} 
+                onChange={(e) => setFormData({...formData, cuisine_type: e.target.value})} 
+                style={styles.input} 
+              />
+              <input 
+                type="tel" 
+                placeholder="Phone *" 
+                required
+                value={formData.phone} 
+                onChange={(e) => setFormData({...formData, phone: e.target.value})} 
+                style={styles.input} 
+              />
+              <div style={styles.timeInputs}>
+                <div>
+                  <label style={styles.timeLabel}>Opening Time *</label>
+                  <input 
+                    type="time" 
+                    required
+                    value={formData.opening_time} 
+                    onChange={(e) => setFormData({...formData, opening_time: e.target.value})} 
+                    style={styles.input} 
+                  />
+                </div>
+                <div>
+                  <label style={styles.timeLabel}>Closing Time *</label>
+                  <input 
+                    type="time" 
+                    required
+                    value={formData.closing_time} 
+                    onChange={(e) => setFormData({...formData, closing_time: e.target.value})} 
+                    style={styles.input} 
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <textarea 
+              placeholder="Address *" 
+              required 
+              value={formData.address} 
+              onChange={(e) => setFormData({...formData, address: e.target.value})} 
+              style={{...styles.input, minHeight: '60px', width: '100%'}} 
+            />
+            
+            <textarea 
+              placeholder="Description" 
+              value={formData.description} 
+              onChange={(e) => setFormData({...formData, description: e.target.value})} 
+              style={{...styles.input, minHeight: '100px', width: '100%'}} 
+            />
+
+            {editMode && (
+              <label style={styles.checkboxLabel}>
+                <input 
+                  type="checkbox" 
+                  checked={formData.is_active}
+                  onChange={(e) => setFormData({...formData, is_active: e.target.checked})}
+                  style={styles.checkbox}
+                />
+                <span>Restaurant is active</span>
+              </label>
+            )}
+            
+            <button type="submit" style={styles.submitBtn}>
+              {editMode ? 'Update Restaurant' : 'Create Restaurant'}
+            </button>
+          </form>
+        )}
+
+        {!showForm && (
+          <div style={styles.grid}>
+            {restaurants.map((restaurant) => (
+              <div key={restaurant.id} style={styles.card}>
+                <div onClick={() => navigate(`/owner/restaurant/${restaurant.id}`)} style={{cursor: 'pointer'}}>
+                  <img 
+                    src={restaurant.image_url || 'https://via.placeholder.com/300x200?text=No+Image'} 
+                    alt={restaurant.name} 
+                    style={styles.image} 
+                  />
+                  <div style={styles.cardContent}>
+                    <h3>{restaurant.name}</h3>
+                    <p style={styles.cuisine}>{restaurant.cuisine_type}</p>
+                    <p style={styles.status}>Status: {restaurant.is_active ? '🟢 Active' : '🔴 Inactive'}</p>
+                    {restaurant.is_banned && <p style={styles.banned}>⚠️ Banned by Admin</p>}
+                  </div>
+                </div>
+                <div style={styles.cardActions}>
+                  <button onClick={(e) => { e.stopPropagation(); handleEdit(restaurant); }} style={styles.editBtn}>
+                    ✏️ Edit
+                  </button>
+                  <button onClick={(e) => { e.stopPropagation(); handleDelete(restaurant.id, restaurant.name); }} style={styles.deleteBtn}>
+                    🗑️ Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {restaurants.length === 0 && !showForm && (
-          <button onClick={() => setShowForm(true)} style={styles.addBtn}>
-            + Add Restaurant
-          </button>
+          <div style={styles.empty}>
+            <p>You haven't created any restaurants yet.</p>
+            <button onClick={() => setShowForm(true)} style={styles.addBtn}>Create Your First Restaurant</button>
+          </div>
         )}
       </div>
-
-      {restaurants.length > 0 && !editMode && (
-        <div style={styles.limitInfo}>
-          <p>⚠️ You have reached the limit of 1 restaurant per account.</p>
-        </div>
-      )}
-
-      {showForm && (
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <div style={styles.formHeader}>
-            <h3>{editMode ? 'Edit Restaurant' : 'Create New Restaurant'}</h3>
-            <button type="button" onClick={resetForm} style={styles.cancelBtn}>✕</button>
-          </div>
-          
-          <div style={styles.imageUploadSection}>
-            <label style={styles.imageLabel}>
-              <div style={styles.imageUploadBox}>
-                {imagePreview ? (
-                  <img src={imagePreview} alt="Preview" style={styles.imagePreview} />
-                ) : (
-                  <div style={styles.uploadPlaceholder}>
-                    <span style={styles.uploadIcon}>📸</span>
-                    <p>Click to upload restaurant image</p>
-                    <p style={styles.uploadHint}>JPG, PNG (Max 5MB)</p>
-                  </div>
-                )}
-              </div>
-              <input 
-                type="file" 
-                accept="image/*" 
-                onChange={handleImageChange}
-                style={{display: 'none'}}
-              />
-            </label>
-            {imagePreview && (
-              <button 
-                type="button"
-                onClick={() => {
-                  setImagePreview('');
-                  setFormData({...formData, image_url: ''});
-                }}
-                style={styles.removeImageBtn}
-              >
-                Remove Image
-              </button>
-            )}
-          </div>
-
-          <div style={styles.formGrid}>
-            <input 
-              type="text" 
-              placeholder="Restaurant Name *" 
-              required 
-              value={formData.name} 
-              onChange={(e) => setFormData({...formData, name: e.target.value})} 
-              style={styles.input} 
-            />
-            <input 
-              type="text" 
-              placeholder="Cuisine Type *" 
-              required
-              value={formData.cuisine_type} 
-              onChange={(e) => setFormData({...formData, cuisine_type: e.target.value})} 
-              style={styles.input} 
-            />
-            <input 
-              type="tel" 
-              placeholder="Phone *" 
-              required
-              value={formData.phone} 
-              onChange={(e) => setFormData({...formData, phone: e.target.value})} 
-              style={styles.input} 
-            />
-            <div style={styles.timeInputs}>
-              <div>
-                <label style={styles.timeLabel}>Opening Time *</label>
-                <input 
-                  type="time" 
-                  required
-                  value={formData.opening_time} 
-                  onChange={(e) => setFormData({...formData, opening_time: e.target.value})} 
-                  style={styles.input} 
-                />
-              </div>
-              <div>
-                <label style={styles.timeLabel}>Closing Time *</label>
-                <input 
-                  type="time" 
-                  required
-                  value={formData.closing_time} 
-                  onChange={(e) => setFormData({...formData, closing_time: e.target.value})} 
-                  style={styles.input} 
-                />
-              </div>
-            </div>
-          </div>
-          
-          <textarea 
-            placeholder="Address *" 
-            required 
-            value={formData.address} 
-            onChange={(e) => setFormData({...formData, address: e.target.value})} 
-            style={{...styles.input, minHeight: '60px', width: '100%'}} 
-          />
-          
-          <textarea 
-            placeholder="Description" 
-            value={formData.description} 
-            onChange={(e) => setFormData({...formData, description: e.target.value})} 
-            style={{...styles.input, minHeight: '100px', width: '100%'}} 
-          />
-
-          {editMode && (
-            <label style={styles.checkboxLabel}>
-              <input 
-                type="checkbox" 
-                checked={formData.is_active}
-                onChange={(e) => setFormData({...formData, is_active: e.target.checked})}
-                style={styles.checkbox}
-              />
-              <span>Restaurant is active</span>
-            </label>
-          )}
-          
-          <button type="submit" style={styles.submitBtn}>
-            {editMode ? 'Update Restaurant' : 'Create Restaurant'}
-          </button>
-        </form>
-      )}
-
-      <div style={styles.grid}>
-        {restaurants.map((restaurant) => (
-          <div key={restaurant.id} style={styles.card}>
-            <div onClick={() => navigate(`/owner/restaurant/${restaurant.id}`)} style={{cursor: 'pointer'}}>
-              <img 
-                src={restaurant.image_url || 'https://via.placeholder.com/300x200?text=No+Image'} 
-                alt={restaurant.name} 
-                style={styles.image} 
-              />
-              <div style={styles.cardContent}>
-                <h3>{restaurant.name}</h3>
-                <p style={styles.cuisine}>{restaurant.cuisine_type}</p>
-                <p style={styles.status}>Status: {restaurant.is_active ? '🟢 Active' : '🔴 Inactive'}</p>
-                {restaurant.is_banned && <p style={styles.banned}>⚠️ Banned by Admin</p>}
-              </div>
-            </div>
-            <div style={styles.cardActions}>
-              <button onClick={(e) => { e.stopPropagation(); handleEdit(restaurant); }} style={styles.editBtn}>
-                ✏️ Edit
-              </button>
-              <button onClick={(e) => { e.stopPropagation(); handleDelete(restaurant.id, restaurant.name); }} style={styles.deleteBtn}>
-                🗑️ Delete
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {restaurants.length === 0 && !showForm && (
-        <div style={styles.empty}>
-          <p>You haven't created any restaurants yet.</p>
-          <button onClick={() => setShowForm(true)} style={styles.addBtn}>Create Your First Restaurant</button>
-        </div>
-      )}
+      
     </div>
   );
 };
 
 const styles = {
-  container: { maxWidth: '1200px', margin: '0 auto', padding: '2rem' },
+  container: { minHeight: '100vh', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)' },
+  background: {
+    maxWidth: '1200px', 
+    margin: '0 auto', 
+    padding: '2rem',
+    background: '#F2F2F2'
+  },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' },
   addBtn: { padding: '0.75rem 1.5rem', background: '#667eea', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' },
   limitInfo: { background: '#fff3cd', border: '1px solid #ffc107', padding: '1rem', borderRadius: '8px', marginBottom: '2rem', color: '#856404' },

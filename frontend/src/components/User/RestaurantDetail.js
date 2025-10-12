@@ -289,7 +289,7 @@ const styles = {
   headerInfo: { display: 'flex', gap: '1.5rem', flexWrap: 'wrap' },
   headerBadge: { background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', padding: '0.5rem 1rem', borderRadius: '20px', fontSize: '0.95rem', fontWeight: '500' },
   
-  content: { maxWidth: '1200px', margin: '-80px auto 0', padding: '0 2rem 4rem', display: 'grid', gridTemplateColumns: '1fr 480px', gap: '2rem', position: 'relative', zIndex: 10 },
+  content: { maxWidth: '1200px', margin: '40px auto 0', padding: '0 2rem 4rem', display: 'grid', gridTemplateColumns: '1fr 480px', gap: '2rem', position: 'relative', zIndex: 10 },
   
   info: { display: 'flex', flexDirection: 'column', gap: '2rem' },
   section: { background: 'white', padding: '2.5rem', borderRadius: '16px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' },
