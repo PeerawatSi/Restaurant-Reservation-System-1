@@ -4,17 +4,19 @@ import {
   createRestaurant,
   getMyRestaurants,
   updateRestaurant,
+  deleteRestaurant,
   createTable,
   getRestaurantTables,
-  createTimeSlot,
-  getRestaurantTimeSlots,
-  getAllRestaurants,
-  getRestaurantById,
-  deleteRestaurant,
+  getAvailableTables,
   updateTable,
   deleteTable,
+  createTimeSlot,
+  getRestaurantTimeSlots,
+  getTimeSlotsWithAvailability,  // ← ADD THIS TO IMPORT
   updateTimeSlot,
-  deleteTimeSlot
+  deleteTimeSlot,
+  getAllRestaurants,
+  getRestaurantById
 } from '../controllers/restaurantController.js';
 
 const router = express.Router();
@@ -23,17 +25,23 @@ const router = express.Router();
 router.get('/', getAllRestaurants);
 router.get('/:restaurantId', getRestaurantById);
 router.get('/:restaurantId/tables', getRestaurantTables);
+router.get('/:restaurantId/available-tables', getAvailableTables);
 router.get('/:restaurantId/time-slots', getRestaurantTimeSlots);
+router.get('/:restaurantId/time-slots-availability', getTimeSlotsWithAvailability);  // ← ADD THIS ROUTE
 
 // Owner routes
 router.post('/', authenticateToken, checkRole('owner', 'admin'), createRestaurant);
 router.get('/my/restaurants', authenticateToken, checkRole('owner', 'admin'), getMyRestaurants);
 router.put('/:restaurantId', authenticateToken, checkRole('owner', 'admin'), updateRestaurant);
-router.post('/:restaurantId/tables', authenticateToken, checkRole('owner', 'admin'), createTable);
-router.post('/:restaurantId/time-slots', authenticateToken, checkRole('owner', 'admin'), createTimeSlot);
 router.delete('/:restaurantId', authenticateToken, checkRole('owner', 'admin'), deleteRestaurant);
+
+// Table routes
+router.post('/:restaurantId/tables', authenticateToken, checkRole('owner', 'admin'), createTable);
 router.put('/:restaurantId/tables/:tableId', authenticateToken, checkRole('owner', 'admin'), updateTable);
 router.delete('/:restaurantId/tables/:tableId', authenticateToken, checkRole('owner', 'admin'), deleteTable);
+
+// Time slot routes
+router.post('/:restaurantId/time-slots', authenticateToken, checkRole('owner', 'admin'), createTimeSlot);
 router.put('/:restaurantId/time-slots/:slotId', authenticateToken, checkRole('owner', 'admin'), updateTimeSlot);
 router.delete('/:restaurantId/time-slots/:slotId', authenticateToken, checkRole('owner', 'admin'), deleteTimeSlot);
 

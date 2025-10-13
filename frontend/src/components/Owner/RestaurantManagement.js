@@ -227,7 +227,8 @@ const RestaurantManagement = () => {
               <div style={styles.formRow}>
                 <input 
                   type="text" 
-                  placeholder="Table Number *" 
+                  placeholder="Table Number *"
+                  autoComplete="off" 
                   required 
                   value={tableForm.table_number} 
                   onChange={(e) => setTableForm({...tableForm, table_number: e.target.value})} 
