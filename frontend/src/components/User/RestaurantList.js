@@ -69,11 +69,11 @@ const RestaurantList = () => {
             <span style={styles.statNumber}>⭐ 4.8</span>
             <span style={styles.statLabel}>Avg Rating</span>
           </div>
-          <div style={styles.statDivider}></div>
+          {/* <div style={styles.statDivider}></div>
           <div style={styles.stat}>
             <button onClick={loadRestaurants} style={styles.refreshIconBtn}>🔄</button>
             <span style={styles.statLabel}>Refresh</span>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -140,7 +140,7 @@ const styles = {
   container: { minHeight: '100vh', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)' },
   
   hero: { 
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+    background: 'linear-gradient(135deg, #7B542F 0%, #764ba2 100%)', 
     padding: '4rem 2rem 3rem', 
     textAlign: 'center',
     boxShadow: '0 10px 40px rgba(0,0,0,0.2)'
@@ -328,7 +328,7 @@ const styles = {
   viewBtn: {
     marginTop: 'auto',
     padding: '0.9rem',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    background: 'linear-gradient(135deg, #B6771D 0%, #764ba2 100%)',
     color: 'white',
     border: 'none',
     borderRadius: '12px',
