@@ -61,7 +61,7 @@ const RestaurantList = () => {
 
         <div style={styles.statsBar}>
           <div style={styles.stat}>
-            <span style={styles.statNumber}>{restaurants.length}</span>
+            <span style={styles.statNumber}>{filteredRestaurants.length}</span>
             <span style={styles.statLabel}>Restaurants</span>
           </div>
           <div style={styles.statDivider}></div>
@@ -140,7 +140,9 @@ const styles = {
   container: { minHeight: '100vh', background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)' },
   
   hero: { 
-    background: 'linear-gradient(135deg, #7B542F 0%, #764ba2 100%)', 
+    backgroundImage: 'linear-gradient(rgba(123, 84, 47, 0.85), rgba(118, 75, 162, 0.85)), url("/mainpg-bg.jpg")',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
     padding: '4rem 2rem 3rem', 
     textAlign: 'center',
     boxShadow: '0 10px 40px rgba(0,0,0,0.2)'

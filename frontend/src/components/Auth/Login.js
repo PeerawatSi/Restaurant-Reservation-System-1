@@ -4,18 +4,14 @@ import { loginWithGoogle } from '../../services/api';
 const Login = () => {
   return (
     <div style={styles.container}>
-      <div style={styles.backgroundShapes}>
-        <div style={styles.shape1}></div>
-        <div style={styles.shape2}></div>
-        <div style={styles.shape3}></div>
-      </div>
+      <div style={styles.overlay}></div>
       
       <div style={styles.card}>
         <div style={styles.iconContainer}>
           <span style={styles.icon}>🍽️</span>
         </div>
         
-        <h1 style={styles.title}>Welcome Back</h1>
+        <h1 style={styles.title}>Welcome to BOOkABlE</h1>
         <p style={styles.subtitle}>Sign in to reserve your perfect dining experience</p>
         
         <button onClick={loginWithGoogle} style={styles.googleButton}>
@@ -53,51 +49,25 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #667eea 0%, #501e81ff 100%)',
+    backgroundImage: 'url("/login-bg.jpg")',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
     position: 'relative',
     overflow: 'hidden',
     padding: '2rem'
   },
-  backgroundShapes: {
+  overlay: {
     position: 'absolute',
-    width: '100%',
-    height: '100%',
-    overflow: 'hidden',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     zIndex: 0
   },
-  shape1: {
-    position: 'absolute',
-    width: '400px',
-    height: '400px',
-    borderRadius: '50%',
-    background: 'rgba(255,255,255,0.1)',
-    top: '-100px',
-    right: '-100px',
-    animation: 'float 6s ease-in-out infinite'
-  },
-  shape2: {
-    position: 'absolute',
-    width: '300px',
-    height: '300px',
-    borderRadius: '50%',
-    background: 'rgba(255,255,255,0.1)',
-    bottom: '-50px',
-    left: '-50px',
-    animation: 'float 8s ease-in-out infinite'
-  },
-  shape3: {
-    position: 'absolute',
-    width: '200px',
-    height: '200px',
-    borderRadius: '50%',
-    background: 'rgba(255,255,255,0.1)',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    animation: 'float 7s ease-in-out infinite'
-  },
   card: {
-    background: 'white',
+    background: 'rgba(255, 255, 255, 0.98)',
     padding: '3rem 2.5rem',
     borderRadius: '24px',
     boxShadow: '0 30px 80px rgba(0,0,0,0.3)',
@@ -105,7 +75,8 @@ const styles = {
     maxWidth: '480px',
     width: '100%',
     position: 'relative',
-    zIndex: 1
+    zIndex: 1,
+    backdropFilter: 'blur(10px)'
   },
   iconContainer: {
     width: '100px',

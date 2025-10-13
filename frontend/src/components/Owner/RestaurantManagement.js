@@ -161,19 +161,19 @@ const RestaurantManagement = () => {
 
       <div style={styles.tabs}>
         <button onClick={() => setActiveTab('reservations')} style={activeTab === 'reservations' ? styles.activeTab : styles.tab}>
-          Reservations ({reservations.length})
+          Reservations
         </button>
         <button onClick={() => setActiveTab('tables')} style={activeTab === 'tables' ? styles.activeTab : styles.tab}>
-          Tables ({tables.length})
+          Tables
         </button>
         <button onClick={() => setActiveTab('timeslots')} style={activeTab === 'timeslots' ? styles.activeTab : styles.tab}>
-          Time Slots ({timeSlots.length})
+          Time Slots
         </button>
       </div>
 
       {activeTab === 'reservations' && (
         <div>
-          <h2>Reservations ({reservations.length})</h2>
+          <h2 style={styles.reservationSection}>All Reservations: {reservations.length}</h2>
           <div style={styles.tableContainer}>
             <table style={styles.table}>
               <thead>
@@ -215,7 +215,7 @@ const RestaurantManagement = () => {
       {activeTab === 'tables' && (
         <div>
           <div style={styles.sectionHeader}>
-            <h2>Tables ({tables.length})</h2>
+            <h2>All Tables: {tables.length}</h2>
             <button onClick={() => { resetTableForm(); setShowTableForm(!showTableForm); }} style={styles.addBtn}>
               {showTableForm ? 'Cancel' : '+ Add Table'}
             </button>
@@ -282,7 +282,7 @@ const RestaurantManagement = () => {
       {activeTab === 'timeslots' && (
         <div>
           <div style={styles.sectionHeader}>
-            <h2>Time Slots ({timeSlots.length})</h2>
+            <h2>All Time Slots: {timeSlots.length}</h2>
             <button onClick={() => { resetSlotForm(); setShowSlotForm(!showSlotForm); }} style={styles.addBtn}>
               {showSlotForm ? 'Cancel' : '+ Add Time Slot'}
             </button>
@@ -360,7 +360,7 @@ const styles = {
   title: { fontSize: '2rem', marginBottom: '2rem' },
   tabs: { display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' },
   tab: { padding: '0.75rem 1.5rem', background: 'white', border: '2px solid #ddd', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', transition: 'all 0.3s' },
-  activeTab: { padding: '0.75rem 1.5rem', background: '#667eea', color: 'white', border: '2px solid #667eea', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' },
+  activeTab: { padding: '0.75rem 1.5rem', background: 'linear-gradient(135deg, #B6771D 0%, #764ba2 100%)', color: 'white', border: '2px solid #667eea', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' },
   sectionHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' },
   addBtn: { padding: '0.75rem 1.5rem', background: '#28a745', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' },
   form: { background: 'white', padding: '2rem', borderRadius: '12px', marginBottom: '2rem', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' },
@@ -379,11 +379,14 @@ const styles = {
   deleteBtn: { flex: 1, padding: '0.6rem', background: '#dc3545', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem' },
   tableContainer: { overflowX: 'auto' },
   table: { width: '100%', background: 'white', borderCollapse: 'collapse', borderRadius: '12px', overflow: 'hidden' },
-  th: { background: '#667eea', color: 'white', padding: '1rem', textAlign: 'left', fontWeight: '600' },
+  th: { background: '#6B3F69', color: 'white', padding: '1rem', textAlign: 'left', fontWeight: '600' },
   td: { padding: '1rem', borderBottom: '1px solid #eee' },
   statusBadge: { padding: '0.25rem 0.75rem', borderRadius: '20px', color: 'white', fontSize: '0.85rem', fontWeight: '600' },
   actionBtn: { padding: '0.5rem 1rem', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '0.5rem', fontSize: '0.85rem' },
   loading: { textAlign: 'center', padding: '4rem', fontSize: '1.2rem' },
+  reservationSection: {
+    paddingBottom: '1.2rem'
+  }
 };
 
 export default RestaurantManagement;

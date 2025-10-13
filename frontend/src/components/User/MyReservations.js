@@ -103,7 +103,7 @@ const styles = {
   cancelBtn: { width: '100%', marginTop: '1rem', padding: '0.75rem', background: '#dc3545', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' },
   loading: { textAlign: 'center', padding: '4rem', fontSize: '1.2rem' },
   empty: { textAlign: 'center', padding: '4rem' },
-  browseBtn: { display: 'inline-block', marginTop: '1rem', padding: '0.75rem 2rem', background: '#667eea', color: 'white', textDecoration: 'none', borderRadius: '6px', fontWeight: '600' },
+  browseBtn: { display: 'inline-block', marginTop: '1rem', padding: '0.75rem 2rem', background: 'linear-gradient(135deg, #B6771D 0%, #764ba2 100%)', color: 'white', textDecoration: 'none', borderRadius: '6px', fontWeight: '600' },
   background: {
     maxWidth: '1200px', 
     margin: '0 auto', 

@@ -336,7 +336,7 @@ const RestaurantDetail = () => {
                   <span style={styles.spinner}></span> Processing...
                 </>
               ) : (
-                <>🎉 Complete Reservation</>
+                <div>Complete Reservation</div>
               )}
             </button>
           </form>
@@ -483,7 +483,7 @@ const styles = {
   submitBtn: { 
     width: '100%', 
     padding: '1.25rem', 
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+    background: 'linear-gradient(135deg, #B6771D 0%, #764ba2 100%)', 
     color: 'white', 
     border: 'none', 
     borderRadius: '14px', 

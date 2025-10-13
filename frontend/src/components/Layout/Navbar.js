@@ -20,7 +20,7 @@ const Navbar = () => {
           onMouseEnter={(e) => Object.assign(e.currentTarget.style, styles.logoHover)}
           onMouseLeave={(e) => Object.assign(e.currentTarget.style, styles.logo)}
         >
-          BOOkABLE
+          BOOkABlE
         </Link>
 
         

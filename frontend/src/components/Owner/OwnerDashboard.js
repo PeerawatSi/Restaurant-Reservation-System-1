@@ -307,7 +307,7 @@ const OwnerDashboard = () => {
 
         {restaurants.length === 0 && !showForm && (
           <div style={styles.empty}>
-            <p>You haven't created any restaurants yet.</p>
+            <p style={styles.text}>You haven't created any restaurants yet.</p>
             <button onClick={() => setShowForm(true)} style={styles.addBtn}>Create Your First Restaurant</button>
           </div>
         )}
@@ -326,7 +326,7 @@ const styles = {
     background: '#F2F2F2'
   },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' },
-  addBtn: { padding: '0.75rem 1.5rem', background: '#667eea', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' },
+  addBtn: { padding: '0.75rem 1.5rem', background: 'linear-gradient(135deg, #B6771D 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' },
   limitInfo: { background: '#fff3cd', border: '1px solid #ffc107', padding: '1rem', borderRadius: '8px', marginBottom: '2rem', color: '#856404' },
   form: { background: 'white', padding: '2rem', borderRadius: '12px', marginBottom: '2rem', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' },
   formHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' },
@@ -358,6 +358,9 @@ const styles = {
   deleteBtn: { flex: 1, padding: '0.75rem', background: '#dc3545', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' },
   loading: { textAlign: 'center', padding: '4rem', fontSize: '1.2rem' },
   empty: { textAlign: 'center', padding: '4rem' },
+  text: {
+    paddingBottom: '1rem'
+  }
 };
 
 export default OwnerDashboard;
