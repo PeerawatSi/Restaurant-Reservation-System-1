@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getRestaurantById, getRestaurantTables, getRestaurantTimeSlots, createReservation } from '../../services/api';
+import { getRestaurantById, getAvailableTables, getRestaurantTimeSlots, getTimeSlotsWithAvailability, createReservation } from '../../services/api';
 
 const RestaurantDetail = () => {
   const { id } = useParams();
@@ -16,26 +16,69 @@ const RestaurantDetail = () => {
     special_requests: ''
   });
   const [loading, setLoading] = useState(true);
+  const [loadingTables, setLoadingTables] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     loadData();
   }, [id]);
 
+  // Load available tables when date, time slot, OR guest count changes
+  useEffect(() => {
+    if (formData.reservation_date && formData.time_slot_id) {
+      loadAvailableTables();
+    } else {
+      setTables([]);
+      setFormData(prev => ({ ...prev, table_id: '' }));
+    }
+  }, [formData.reservation_date, formData.time_slot_id, formData.guest_count]);
+
   const loadData = async () => {
     try {
-      const [restaurantRes, tablesRes, timeSlotsRes] = await Promise.all([
+      const [restaurantRes, timeSlotsRes] = await Promise.all([
         getRestaurantById(id),
-        getRestaurantTables(id),
         getRestaurantTimeSlots(id)
       ]);
       setRestaurant(restaurantRes.data);
-      setTables(tablesRes.data);
       setTimeSlots(timeSlotsRes.data);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAvailableTables = async () => {
+    setLoadingTables(true);
+    try {
+      const response = await getAvailableTables(id, formData.reservation_date, formData.time_slot_id);
+      
+      // Check if the response indicates max capacity reached
+      if (response.data.available === false) {
+        setTables([]);
+        alert(`⚠️ ${response.data.message}\n\nCurrent bookings: ${response.data.currentBookings}/${response.data.maxTables}\n\nPlease select a different time slot.`);
+        setFormData(prev => ({ ...prev, table_id: '' }));
+        return;
+      }
+
+      // Filter tables based on guest count capacity
+      const filteredTables = response.data.tables.filter(table => table.capacity >= formData.guest_count);
+      setTables(filteredTables);
+      
+      // Show remaining slots info
+      if (response.data.remainingSlots && response.data.remainingSlots <= 3) {
+        console.log(`⚠️ Only ${response.data.remainingSlots} slots remaining for this time!`);
+      }
+      
+      // Reset table selection if previously selected table is no longer available
+      if (formData.table_id && !filteredTables.find(t => t.id === formData.table_id)) {
+        setFormData(prev => ({ ...prev, table_id: '' }));
+      }
+    } catch (error) {
+      console.error('Error loading available tables:', error);
+      setTables([]);
+    } finally {
+      setLoadingTables(false);
     }
   };
 
@@ -152,6 +195,46 @@ const RestaurantDetail = () => {
               />
             </div>
 
+            {/* Time Slot Selection */}
+            <div style={styles.formGroup}>
+              <label style={styles.label}>
+                <span style={styles.labelIcon}>⏰</span> Select Time
+              </label>
+              <div style={styles.timeSlotGrid}>
+                {timeSlots.map((slot) => (
+                  <div
+                    key={slot.id}
+                    onClick={() => slot.available !== false && setFormData({...formData, time_slot_id: slot.id})}
+                    style={{
+                      ...styles.timeSlotCard,
+                      ...(formData.time_slot_id === slot.id ? styles.timeSlotCardSelected : {}),
+                      ...(slot.available === false ? styles.timeSlotCardDisabled : {})
+                    }}
+                  >
+                    <div style={styles.timeSlotTime}>{formatTime(slot.slot_time)}</div>
+                    <div style={styles.timeSlotDuration}>
+                      <span style={styles.durationDot}>•</span> {slot.duration_minutes}min
+                    </div>
+                    {slot.remainingSlots !== undefined && (
+                      <div style={{
+                        ...styles.availabilityBadge,
+                        ...(slot.remainingSlots === 0 ? styles.fullBadge : 
+                            slot.remainingSlots <= 2 ? styles.lowBadge : styles.availableBadge)
+                      }}>
+                        {slot.remainingSlots === 0 ? 'Full' : `${slot.remainingSlots} left`}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {timeSlots.length === 0 && (
+                <div style={styles.emptyState}>
+                  <span style={styles.emptyIcon}>⏰</span>
+                  <p>No time slots available</p>
+                </div>
+              )}
+            </div>
+
             {/* Guest Count */}
             <div style={styles.formGroup}>
               <label style={styles.label}>
@@ -176,71 +259,56 @@ const RestaurantDetail = () => {
               </div>
             </div>
 
-            {/* Time Slot Selection */}
-            <div style={styles.formGroup}>
-              <label style={styles.label}>
-                <span style={styles.labelIcon}>⏰</span> Select Time
-              </label>
-              <div style={styles.timeSlotGrid}>
-                {timeSlots.map((slot) => (
-                  <div
-                    key={slot.id}
-                    onClick={() => setFormData({...formData, time_slot_id: slot.id})}
-                    style={{
-                      ...styles.timeSlotCard,
-                      ...(formData.time_slot_id === slot.id ? styles.timeSlotCardSelected : {})
-                    }}
-                  >
-                    <div style={styles.timeSlotTime}>{formatTime(slot.slot_time)}</div>
-                    <div style={styles.timeSlotDuration}>
-                      <span style={styles.durationDot}>•</span> {slot.duration_minutes}min
-                    </div>
+            {/* Table Selection - only show after date and time are selected */}
+            {formData.reservation_date && formData.time_slot_id && (
+              <div style={styles.formGroup}>
+                <label style={styles.label}>
+                  <span style={styles.labelIcon}>🪑</span> Choose Your Table
+                </label>
+                {loadingTables ? (
+                  <div style={styles.emptyState}>
+                    <div style={styles.spinnerSmall}></div>
+                    <p>Loading available tables...</p>
                   </div>
-                ))}
-              </div>
-              {timeSlots.length === 0 && (
-                <div style={styles.emptyState}>
-                  <span style={styles.emptyIcon}>⏰</span>
-                  <p>No time slots available</p>
-                </div>
-              )}
-            </div>
-
-            {/* Table Selection */}
-            <div style={styles.formGroup}>
-              <label style={styles.label}>
-                <span style={styles.labelIcon}>🪑</span> Choose Your Table
-              </label>
-              <div style={styles.tableGrid}>
-                {tables.filter(t => t.is_available).map((table) => (
-                  <div
-                    key={table.id}
-                    onClick={() => setFormData({...formData, table_id: table.id})}
-                    style={{
-                      ...styles.tableCard,
-                      ...(formData.table_id === table.id ? styles.tableCardSelected : {})
-                    }}
-                  >
-                    <div style={styles.tableIconLarge}>{getTableIcon(table.capacity)}</div>
-                    <div style={styles.tableInfo}>
-                      <div style={styles.tableNumber}>Table {table.table_number}</div>
-                      <div style={styles.tableCapacity}>
-                        Up to {table.capacity} guests
+                ) : tables.length > 0 ? (
+                  <div style={styles.tableGrid}>
+                    {tables.map((table) => (
+                      <div
+                        key={table.id}
+                        onClick={() => setFormData({...formData, table_id: table.id})}
+                        style={{
+                          ...styles.tableCard,
+                          ...(formData.table_id === table.id ? styles.tableCardSelected : {})
+                        }}
+                      >
+                        <div style={styles.tableIconLarge}>{getTableIcon(table.capacity)}</div>
+                        <div style={styles.tableInfo}>
+                          <div style={styles.tableNumber}>Table {table.table_number}</div>
+                          <div style={styles.tableCapacity}>
+                            Seats {table.capacity} {table.capacity === formData.guest_count ? '(Perfect fit!)' : ''}
+                          </div>
+                        </div>
+                        {formData.table_id === table.id && (
+                          <div style={styles.selectedBadge}>✓</div>
+                        )}
                       </div>
-                    </div>
-                    {formData.table_id === table.id && (
-                      <div style={styles.selectedBadge}>✓</div>
-                    )}
+                    ))}
                   </div>
-                ))}
+                ) : (
+                  <div style={styles.emptyState}>
+                    <span style={styles.emptyIcon}>🪑</span>
+                    <p>No tables available for {formData.guest_count} {formData.guest_count === 1 ? 'guest' : 'guests'}</p>
+                    <p style={styles.emptySubtext}>Try selecting fewer guests or a different time slot</p>
+                  </div>
+                )}
               </div>
-              {tables.filter(t => t.is_available).length === 0 && (
-                <div style={styles.emptyState}>
-                  <span style={styles.emptyIcon}>🪑</span>
-                  <p>No tables available</p>
-                </div>
-              )}
-            </div>
+            )}
+
+            {!formData.reservation_date || !formData.time_slot_id ? (
+              <div style={styles.helpText}>
+                ℹ️ Please select a date and time to see available tables
+              </div>
+            ) : null}
 
             {/* Special Requests */}
             <div style={styles.formGroup}>
@@ -344,7 +412,8 @@ const styles = {
     textAlign: 'center',
     transition: 'all 0.3s',
     background: 'white',
-    userSelect: 'none'
+    userSelect: 'none',
+    position: 'relative'
   },
   timeSlotCardSelected: { 
     border: '2px solid #667eea', 
@@ -353,9 +422,37 @@ const styles = {
     transform: 'translateY(-4px)',
     boxShadow: '0 12px 24px rgba(102, 126, 234, 0.4)'
   },
+  timeSlotCardDisabled: {
+    opacity: 0.5,
+    cursor: 'not-allowed',
+    background: '#f7fafc'
+  },
   timeSlotTime: { fontSize: '1.2rem', fontWeight: '700', marginBottom: '0.25rem' },
   timeSlotDuration: { fontSize: '0.85rem', opacity: 0.8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' },
   durationDot: { fontSize: '1.2rem' },
+  
+  availabilityBadge: {
+    position: 'absolute',
+    top: '0.5rem',
+    right: '0.5rem',
+    padding: '0.25rem 0.5rem',
+    borderRadius: '12px',
+    fontSize: '0.7rem',
+    fontWeight: '700',
+    textTransform: 'uppercase'
+  },
+  fullBadge: {
+    background: '#dc3545',
+    color: 'white'
+  },
+  lowBadge: {
+    background: '#ffc107',
+    color: '#000'
+  },
+  availableBadge: {
+    background: '#28a745',
+    color: 'white'
+  },
   
   tableGrid: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' },
   tableCard: { 
@@ -414,6 +511,18 @@ const styles = {
     border: '2px dashed #e2e8f0' 
   },
   emptyIcon: { fontSize: '3rem', display: 'block', marginBottom: '1rem', opacity: 0.5 },
+  emptySubtext: { fontSize: '0.9rem', color: '#a0aec0', marginTop: '0.5rem' },
+  
+  helpText: {
+    background: '#e6f3ff',
+    border: '1px solid #b3d9ff',
+    padding: '1rem',
+    borderRadius: '8px',
+    color: '#0066cc',
+    textAlign: 'center',
+    fontSize: '0.95rem',
+    marginBottom: '1rem'
+  },
   
   loadingContainer: { 
     display: 'flex', 
@@ -430,6 +539,15 @@ const styles = {
     borderTop: '4px solid #667eea', 
     borderRadius: '50%', 
     animation: 'spin 1s linear infinite' 
+  },
+  spinnerSmall: { 
+    width: '30px', 
+    height: '30px', 
+    border: '3px solid #e2e8f0', 
+    borderTop: '3px solid #667eea', 
+    borderRadius: '50%', 
+    animation: 'spin 1s linear infinite',
+    margin: '0 auto'
   },
   loading: { textAlign: 'center', padding: '4rem', fontSize: '1.2rem' },
 };

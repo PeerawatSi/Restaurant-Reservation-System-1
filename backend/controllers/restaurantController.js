@@ -245,6 +245,86 @@ export const getRestaurantTables = async (req, res) => {
   }
 };
 
+export const getAvailableTables = async (req, res) => {
+  try {
+    const { restaurantId } = req.params;
+    const { date, timeSlotId } = req.query;
+
+    if (!date || !timeSlotId) {
+      return res.status(400).json({ error: 'Date and time slot are required' });
+    }
+
+    // Get time slot info including max_tables
+    const timeSlotInfo = await pool.query(
+      'SELECT max_tables FROM time_slots WHERE id = $1 AND restaurant_id = $2',
+      [timeSlotId, restaurantId]
+    );
+
+    if (timeSlotInfo.rows.length === 0) {
+      return res.status(404).json({ error: 'Time slot not found' });
+    }
+
+    const maxTables = timeSlotInfo.rows[0].max_tables;
+
+    // Count how many tables are already booked for this time slot
+    const bookedCount = await pool.query(
+      `SELECT COUNT(*) as count FROM reservations 
+       WHERE restaurant_id = $1 
+       AND reservation_date = $2 
+       AND time_slot_id = $3 
+       AND status IN ('confirmed', 'pending')`,
+      [restaurantId, date, timeSlotId]
+    );
+
+    const currentBookings = parseInt(bookedCount.rows[0].count);
+
+    // Check if max tables limit is reached
+    if (currentBookings >= maxTables) {
+      return res.json({ 
+        available: false, 
+        message: 'Maximum capacity reached for this time slot',
+        currentBookings,
+        maxTables,
+        tables: []
+      });
+    }
+
+    // Get all tables for the restaurant
+    const allTables = await pool.query(
+      'SELECT * FROM restaurant_tables WHERE restaurant_id = $1 AND is_available = true ORDER BY table_number',
+      [restaurantId]
+    );
+
+    // Get reserved tables for this date and time slot
+    const reservedTables = await pool.query(
+      `SELECT table_id FROM reservations 
+       WHERE restaurant_id = $1 
+       AND reservation_date = $2 
+       AND time_slot_id = $3 
+       AND status IN ('confirmed', 'pending')`,
+      [restaurantId, date, timeSlotId]
+    );
+
+    const reservedTableIds = reservedTables.rows.map(r => r.table_id);
+
+    // Filter out reserved tables
+    const availableTables = allTables.rows.filter(
+      table => !reservedTableIds.includes(table.id)
+    );
+
+    res.json({ 
+      available: true,
+      currentBookings,
+      maxTables,
+      remainingSlots: maxTables - currentBookings,
+      tables: availableTables
+    });
+  } catch (error) {
+    console.error('Error getting available tables:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 export const createTimeSlot = async (req, res) => {
   try {
     const { restaurantId } = req.params;
@@ -282,6 +362,52 @@ export const getRestaurantTimeSlots = async (req, res) => {
 
     res.json(result.rows);
   } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+export const getTimeSlotsWithAvailability = async (req, res) => {
+  try {
+    const { restaurantId } = req.params;
+    const { date } = req.query;
+
+    if (!date) {
+      return res.status(400).json({ error: 'Date is required' });
+    }
+
+    // Get all active time slots
+    const timeSlots = await pool.query(
+      'SELECT * FROM time_slots WHERE restaurant_id = $1 AND is_active = true ORDER BY slot_time',
+      [restaurantId]
+    );
+
+    // For each time slot, get the count of bookings
+    const timeSlotsWithAvailability = await Promise.all(
+      timeSlots.rows.map(async (slot) => {
+        const bookingCount = await pool.query(
+          `SELECT COUNT(*) as count FROM reservations 
+           WHERE restaurant_id = $1 
+           AND reservation_date = $2 
+           AND time_slot_id = $3 
+           AND status IN ('confirmed', 'pending')`,
+          [restaurantId, date, slot.id]
+        );
+
+        const currentBookings = parseInt(bookingCount.rows[0].count);
+        const available = currentBookings < slot.max_tables;
+
+        return {
+          ...slot,
+          currentBookings,
+          remainingSlots: slot.max_tables - currentBookings,
+          available
+        };
+      })
+    );
+
+    res.json(timeSlotsWithAvailability);
+  } catch (error) {
+    console.error('Error getting time slots with availability:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
