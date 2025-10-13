@@ -8,6 +8,7 @@ import {
   getRestaurantTables,
   createTimeSlot,
   getRestaurantTimeSlots,
+  getAvailableTables,
   getAllRestaurants,
   getRestaurantById,
   deleteRestaurant,
@@ -36,5 +37,6 @@ router.put('/:restaurantId/tables/:tableId', authenticateToken, checkRole('owner
 router.delete('/:restaurantId/tables/:tableId', authenticateToken, checkRole('owner', 'admin'), deleteTable);
 router.put('/:restaurantId/time-slots/:slotId', authenticateToken, checkRole('owner', 'admin'), updateTimeSlot);
 router.delete('/:restaurantId/time-slots/:slotId', authenticateToken, checkRole('owner', 'admin'), deleteTimeSlot);
+router.get('/:restaurantId/available-tables', getAvailableTables);
 
 export default router;

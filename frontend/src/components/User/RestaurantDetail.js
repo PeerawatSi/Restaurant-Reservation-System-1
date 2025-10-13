@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getRestaurantById, getRestaurantTables, getRestaurantTimeSlots, createReservation } from '../../services/api';
+import { getRestaurantById, getAvailableTables, getRestaurantTimeSlots, createReservation } from '../../services/api';
 
 const RestaurantDetail = () => {
   const { id } = useParams();
@@ -16,26 +16,52 @@ const RestaurantDetail = () => {
     special_requests: ''
   });
   const [loading, setLoading] = useState(true);
+  const [loadingTables, setLoadingTables] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     loadData();
   }, [id]);
 
+  // Load available tables when date AND time slot are selected
+  useEffect(() => {
+    if (formData.reservation_date && formData.time_slot_id) {
+      loadAvailableTables();
+    } else {
+      setTables([]);
+      setFormData(prev => ({ ...prev, table_id: '' }));
+    }
+  }, [formData.reservation_date, formData.time_slot_id]);
+
   const loadData = async () => {
     try {
-      const [restaurantRes, tablesRes, timeSlotsRes] = await Promise.all([
+      const [restaurantRes, timeSlotsRes] = await Promise.all([
         getRestaurantById(id),
-        getRestaurantTables(id),
         getRestaurantTimeSlots(id)
       ]);
       setRestaurant(restaurantRes.data);
-      setTables(tablesRes.data);
       setTimeSlots(timeSlotsRes.data);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAvailableTables = async () => {
+    setLoadingTables(true);
+    try {
+      const response = await getAvailableTables(id, formData.reservation_date, formData.time_slot_id);
+      setTables(response.data);
+      // Reset table selection if previously selected table is no longer available
+      if (formData.table_id && !response.data.find(t => t.id === formData.table_id)) {
+        setFormData(prev => ({ ...prev, table_id: '' }));
+      }
+    } catch (error) {
+      console.error('Error loading available tables:', error);
+      setTables([]);
+    } finally {
+      setLoadingTables(false);
     }
   };
 
@@ -152,30 +178,6 @@ const RestaurantDetail = () => {
               />
             </div>
 
-            {/* Guest Count */}
-            <div style={styles.formGroup}>
-              <label style={styles.label}>
-                <span style={styles.labelIcon}>👥</span> Number of Guests
-              </label>
-              <div style={styles.guestGrid}>
-                {guestOptions.map((count) => (
-                  <div
-                    key={count}
-                    onClick={() => setFormData({...formData, guest_count: count})}
-                    style={{
-                      ...styles.guestCard,
-                      ...(formData.guest_count === count ? styles.guestCardSelected : {})
-                    }}
-                  >
-                    <div style={styles.guestNumber}>{count}</div>
-                    <div style={styles.guestLabel}>
-                      {count === 1 ? 'Guest' : 'Guests'}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {/* Time Slot Selection */}
             <div style={styles.formGroup}>
               <label style={styles.label}>
@@ -206,41 +208,80 @@ const RestaurantDetail = () => {
               )}
             </div>
 
-            {/* Table Selection */}
+            {/* Guest Count */}
             <div style={styles.formGroup}>
               <label style={styles.label}>
-                <span style={styles.labelIcon}>🪑</span> Choose Your Table
+                <span style={styles.labelIcon}>👥</span> Number of Guests
               </label>
-              <div style={styles.tableGrid}>
-                {tables.filter(t => t.is_available).map((table) => (
+              <div style={styles.guestGrid}>
+                {guestOptions.map((count) => (
                   <div
-                    key={table.id}
-                    onClick={() => setFormData({...formData, table_id: table.id})}
+                    key={count}
+                    onClick={() => setFormData({...formData, guest_count: count})}
                     style={{
-                      ...styles.tableCard,
-                      ...(formData.table_id === table.id ? styles.tableCardSelected : {})
+                      ...styles.guestCard,
+                      ...(formData.guest_count === count ? styles.guestCardSelected : {})
                     }}
                   >
-                    <div style={styles.tableIconLarge}>{getTableIcon(table.capacity)}</div>
-                    <div style={styles.tableInfo}>
-                      <div style={styles.tableNumber}>Table {table.table_number}</div>
-                      <div style={styles.tableCapacity}>
-                        Up to {table.capacity} guests
-                      </div>
+                    <div style={styles.guestNumber}>{count}</div>
+                    <div style={styles.guestLabel}>
+                      {count === 1 ? 'Guest' : 'Guests'}
                     </div>
-                    {formData.table_id === table.id && (
-                      <div style={styles.selectedBadge}>✓</div>
-                    )}
                   </div>
                 ))}
               </div>
-              {tables.filter(t => t.is_available).length === 0 && (
-                <div style={styles.emptyState}>
-                  <span style={styles.emptyIcon}>🪑</span>
-                  <p>No tables available</p>
-                </div>
-              )}
             </div>
+
+            {/* Table Selection - only show after date and time are selected */}
+            {formData.reservation_date && formData.time_slot_id && (
+              <div style={styles.formGroup}>
+                <label style={styles.label}>
+                  <span style={styles.labelIcon}>🪑</span> Choose Your Table
+                </label>
+                {loadingTables ? (
+                  <div style={styles.emptyState}>
+                    <div style={styles.spinnerSmall}></div>
+                    <p>Loading available tables...</p>
+                  </div>
+                ) : tables.length > 0 ? (
+                  <div style={styles.tableGrid}>
+                    {tables.map((table) => (
+                      <div
+                        key={table.id}
+                        onClick={() => setFormData({...formData, table_id: table.id})}
+                        style={{
+                          ...styles.tableCard,
+                          ...(formData.table_id === table.id ? styles.tableCardSelected : {})
+                        }}
+                      >
+                        <div style={styles.tableIconLarge}>{getTableIcon(table.capacity)}</div>
+                        <div style={styles.tableInfo}>
+                          <div style={styles.tableNumber}>Table {table.table_number}</div>
+                          <div style={styles.tableCapacity}>
+                            Up to {table.capacity} guests
+                          </div>
+                        </div>
+                        {formData.table_id === table.id && (
+                          <div style={styles.selectedBadge}>✓</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={styles.emptyState}>
+                    <span style={styles.emptyIcon}>🪑</span>
+                    <p>No tables available for this date and time</p>
+                    <p style={styles.emptySubtext}>Please try a different time slot</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {!formData.reservation_date || !formData.time_slot_id ? (
+              <div style={styles.helpText}>
+                ℹ️ Please select a date and time to see available tables
+              </div>
+            ) : null}
 
             {/* Special Requests */}
             <div style={styles.formGroup}>
@@ -414,6 +455,18 @@ const styles = {
     border: '2px dashed #e2e8f0' 
   },
   emptyIcon: { fontSize: '3rem', display: 'block', marginBottom: '1rem', opacity: 0.5 },
+  emptySubtext: { fontSize: '0.9rem', color: '#a0aec0', marginTop: '0.5rem' },
+  
+  helpText: {
+    background: '#e6f3ff',
+    border: '1px solid #b3d9ff',
+    padding: '1rem',
+    borderRadius: '8px',
+    color: '#0066cc',
+    textAlign: 'center',
+    fontSize: '0.95rem',
+    marginBottom: '1rem'
+  },
   
   loadingContainer: { 
     display: 'flex', 
@@ -430,6 +483,15 @@ const styles = {
     borderTop: '4px solid #667eea', 
     borderRadius: '50%', 
     animation: 'spin 1s linear infinite' 
+  },
+  spinnerSmall: { 
+    width: '30px', 
+    height: '30px', 
+    border: '3px solid #e2e8f0', 
+    borderTop: '3px solid #667eea', 
+    borderRadius: '50%', 
+    animation: 'spin 1s linear infinite',
+    margin: '0 auto'
   },
   loading: { textAlign: 'center', padding: '4rem', fontSize: '1.2rem' },
 };

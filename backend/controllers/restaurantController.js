@@ -245,6 +245,46 @@ export const getRestaurantTables = async (req, res) => {
   }
 };
 
+export const getAvailableTables = async (req, res) => {
+  try {
+    const { restaurantId } = req.params;
+    const { date, timeSlotId } = req.query;
+
+    if (!date || !timeSlotId) {
+      return res.status(400).json({ error: 'Date and time slot are required' });
+    }
+
+    // Get all tables for the restaurant
+    const allTables = await pool.query(
+      'SELECT * FROM restaurant_tables WHERE restaurant_id = $1 AND is_available = true ORDER BY table_number',
+      [restaurantId]
+    );
+
+    // Get reserved tables for this date and time slot
+    const reservedTables = await pool.query(
+      `SELECT table_id FROM reservations 
+       WHERE restaurant_id = $1 
+       AND reservation_date = $2 
+       AND time_slot_id = $3 
+       AND status IN ('confirmed', 'pending')`,
+      [restaurantId, date, timeSlotId]
+    );
+
+    const reservedTableIds = reservedTables.rows.map(r => r.table_id);
+
+    // Filter out reserved tables and add availability status
+    const availableTables = allTables.rows.map(table => ({
+      ...table,
+      isBookedForSlot: reservedTableIds.includes(table.id)
+    })).filter(table => !table.isBookedForSlot);
+
+    res.json(availableTables);
+  } catch (error) {
+    console.error('Error getting available tables:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 export const createTimeSlot = async (req, res) => {
   try {
     const { restaurantId } = req.params;
