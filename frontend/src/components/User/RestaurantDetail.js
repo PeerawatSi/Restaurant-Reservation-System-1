@@ -23,7 +23,7 @@ const RestaurantDetail = () => {
     loadData();
   }, [id]);
 
-  // Load available tables when date AND time slot are selected
+  // Load available tables when date, time slot, OR guest count changes
   useEffect(() => {
     if (formData.reservation_date && formData.time_slot_id) {
       loadAvailableTables();
@@ -31,7 +31,7 @@ const RestaurantDetail = () => {
       setTables([]);
       setFormData(prev => ({ ...prev, table_id: '' }));
     }
-  }, [formData.reservation_date, formData.time_slot_id]);
+  }, [formData.reservation_date, formData.time_slot_id, formData.guest_count]);
 
   const loadData = async () => {
     try {
@@ -52,9 +52,11 @@ const RestaurantDetail = () => {
     setLoadingTables(true);
     try {
       const response = await getAvailableTables(id, formData.reservation_date, formData.time_slot_id);
-      setTables(response.data);
+      // Filter tables based on guest count capacity
+      const filteredTables = response.data.filter(table => table.capacity >= formData.guest_count);
+      setTables(filteredTables);
       // Reset table selection if previously selected table is no longer available
-      if (formData.table_id && !response.data.find(t => t.id === formData.table_id)) {
+      if (formData.table_id && !filteredTables.find(t => t.id === formData.table_id)) {
         setFormData(prev => ({ ...prev, table_id: '' }));
       }
     } catch (error) {
@@ -258,7 +260,7 @@ const RestaurantDetail = () => {
                         <div style={styles.tableInfo}>
                           <div style={styles.tableNumber}>Table {table.table_number}</div>
                           <div style={styles.tableCapacity}>
-                            Up to {table.capacity} guests
+                            Seats {table.capacity} {table.capacity === formData.guest_count ? '(Perfect fit!)' : ''}
                           </div>
                         </div>
                         {formData.table_id === table.id && (
@@ -270,8 +272,8 @@ const RestaurantDetail = () => {
                 ) : (
                   <div style={styles.emptyState}>
                     <span style={styles.emptyIcon}>🪑</span>
-                    <p>No tables available for this date and time</p>
-                    <p style={styles.emptySubtext}>Please try a different time slot</p>
+                    <p>No tables available for {formData.guest_count} {formData.guest_count === 1 ? 'guest' : 'guests'}</p>
+                    <p style={styles.emptySubtext}>Try selecting fewer guests or a different time slot</p>
                   </div>
                 )}
               </div>
