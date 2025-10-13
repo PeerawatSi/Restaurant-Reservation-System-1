@@ -58,5 +58,6 @@ export const updateReservationStatus = (id, status) => api.patch(`/reservations/
 export const cancelReservation = (id) => api.delete(`/reservations/${id}`);
 export const getAvailableTables = (restaurantId, date, timeSlotId) => 
   api.get(`/restaurants/${restaurantId}/available-tables?date=${date}&timeSlotId=${timeSlotId}`);
-
+export const getTimeSlotsWithAvailability = (restaurantId, date) => 
+  api.get(`/restaurants/${restaurantId}/time-slots-availability?date=${date}`);
 export default api;

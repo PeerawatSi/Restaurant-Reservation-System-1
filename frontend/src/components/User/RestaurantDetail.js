@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getRestaurantById, getAvailableTables, getRestaurantTimeSlots, createReservation } from '../../services/api';
+import { getRestaurantById, getAvailableTables, getRestaurantTimeSlots, getTimeSlotsWithAvailability, createReservation } from '../../services/api';
 
 const RestaurantDetail = () => {
   const { id } = useParams();
@@ -52,9 +52,24 @@ const RestaurantDetail = () => {
     setLoadingTables(true);
     try {
       const response = await getAvailableTables(id, formData.reservation_date, formData.time_slot_id);
+      
+      // Check if the response indicates max capacity reached
+      if (response.data.available === false) {
+        setTables([]);
+        alert(`⚠️ ${response.data.message}\n\nCurrent bookings: ${response.data.currentBookings}/${response.data.maxTables}\n\nPlease select a different time slot.`);
+        setFormData(prev => ({ ...prev, table_id: '' }));
+        return;
+      }
+
       // Filter tables based on guest count capacity
-      const filteredTables = response.data.filter(table => table.capacity >= formData.guest_count);
+      const filteredTables = response.data.tables.filter(table => table.capacity >= formData.guest_count);
       setTables(filteredTables);
+      
+      // Show remaining slots info
+      if (response.data.remainingSlots && response.data.remainingSlots <= 3) {
+        console.log(`⚠️ Only ${response.data.remainingSlots} slots remaining for this time!`);
+      }
+      
       // Reset table selection if previously selected table is no longer available
       if (formData.table_id && !filteredTables.find(t => t.id === formData.table_id)) {
         setFormData(prev => ({ ...prev, table_id: '' }));
@@ -189,16 +204,26 @@ const RestaurantDetail = () => {
                 {timeSlots.map((slot) => (
                   <div
                     key={slot.id}
-                    onClick={() => setFormData({...formData, time_slot_id: slot.id})}
+                    onClick={() => slot.available !== false && setFormData({...formData, time_slot_id: slot.id})}
                     style={{
                       ...styles.timeSlotCard,
-                      ...(formData.time_slot_id === slot.id ? styles.timeSlotCardSelected : {})
+                      ...(formData.time_slot_id === slot.id ? styles.timeSlotCardSelected : {}),
+                      ...(slot.available === false ? styles.timeSlotCardDisabled : {})
                     }}
                   >
                     <div style={styles.timeSlotTime}>{formatTime(slot.slot_time)}</div>
                     <div style={styles.timeSlotDuration}>
                       <span style={styles.durationDot}>•</span> {slot.duration_minutes}min
                     </div>
+                    {slot.remainingSlots !== undefined && (
+                      <div style={{
+                        ...styles.availabilityBadge,
+                        ...(slot.remainingSlots === 0 ? styles.fullBadge : 
+                            slot.remainingSlots <= 2 ? styles.lowBadge : styles.availableBadge)
+                      }}>
+                        {slot.remainingSlots === 0 ? 'Full' : `${slot.remainingSlots} left`}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -387,7 +412,8 @@ const styles = {
     textAlign: 'center',
     transition: 'all 0.3s',
     background: 'white',
-    userSelect: 'none'
+    userSelect: 'none',
+    position: 'relative'
   },
   timeSlotCardSelected: { 
     border: '2px solid #667eea', 
@@ -396,9 +422,37 @@ const styles = {
     transform: 'translateY(-4px)',
     boxShadow: '0 12px 24px rgba(102, 126, 234, 0.4)'
   },
+  timeSlotCardDisabled: {
+    opacity: 0.5,
+    cursor: 'not-allowed',
+    background: '#f7fafc'
+  },
   timeSlotTime: { fontSize: '1.2rem', fontWeight: '700', marginBottom: '0.25rem' },
   timeSlotDuration: { fontSize: '0.85rem', opacity: 0.8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem' },
   durationDot: { fontSize: '1.2rem' },
+  
+  availabilityBadge: {
+    position: 'absolute',
+    top: '0.5rem',
+    right: '0.5rem',
+    padding: '0.25rem 0.5rem',
+    borderRadius: '12px',
+    fontSize: '0.7rem',
+    fontWeight: '700',
+    textTransform: 'uppercase'
+  },
+  fullBadge: {
+    background: '#dc3545',
+    color: 'white'
+  },
+  lowBadge: {
+    background: '#ffc107',
+    color: '#000'
+  },
+  availableBadge: {
+    background: '#28a745',
+    color: 'white'
+  },
   
   tableGrid: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' },
   tableCard: { 
