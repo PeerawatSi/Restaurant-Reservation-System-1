@@ -12,7 +12,7 @@ import {
   deleteTable,
   createTimeSlot,
   getRestaurantTimeSlots,
-  getTimeSlotsWithAvailability,  // ← ADD THIS TO IMPORT
+  getTimeSlotsWithAvailability,  
   updateTimeSlot,
   deleteTimeSlot,
   getAllRestaurants,
