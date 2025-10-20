@@ -38,3 +38,9 @@ npm run dev
 #for running frontend
 cd frontend
 npm start
+
+```
+### Add role in database server
+``` bash
+UPDATE users SET role = '[role]' WHERE email = 'your-email@gmail.com';
+```
